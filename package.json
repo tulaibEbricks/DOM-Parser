@@ -1,0 +1,24 @@
+{
+  "name": "dom-parser",
+  "version": "1.0.0",
+  "description": "Extract actionable objects, their positions and sizes",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "author": "Tulaib",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^1.18.5"
+  },
+  "dependencies": {
+    "bounding-client-rect": "^1.0.5",
+    "circular-json": "^0.5.9",
+    "express": "^4.16.4",
+    "htmlparser2": "^3.10.0",
+    "puppeteer": "^1.10.0",
+    "puppeteer-core": "^1.10.0",
+    "request": "^2.88.0",
+    "write": "^1.0.3"
+  }
+}
