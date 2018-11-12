@@ -13,10 +13,18 @@ const app = express();
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto('https://www.google.com/');
+    // const interactableElements = await page.$$eval('a', element => {
+    //     return element;
+    //     // return JSON.parse(JSON.stringify(element.style));//getComputedStyle(element);
+    //     // return JSON.parse(JSON.stringify(getComputedStyle(element)));
+    // });
     const interactableElements = await page.$$('a');
+    // console.log(interactableElements);
+
     console.log( interactableElements.length );
     const elementsPropertyList = await elementsIterator(interactableElements)
     const stringifiedData = JSON.stringify(elementsPropertyList)
+    // console.log(stringifiedData);
     writeFile('../parsedData.json', stringifiedData, function(err) {
         if (err) {
             console.log(err);
@@ -44,10 +52,39 @@ async function loadElementProperties(item) {
         propertyDict['text'] = text
         const link = await ( await element.getProperty( 'href' ) ).jsonValue();
         propertyDict['link'] = link
+        const style = await ( await element.getProperty( 'style' ) ).jsonValue();
+        const isEmpty = checkIfJSONIsEmpty(style)
+        if (!isEmpty) {
+            propertyDict['style'] = style
+            // const nodeList = await getStyleValue(element, style);
+            // console.log(nodeList);
+        }
         const dimensions = await element.boundingBox()
         propertyDict['dimensions'] = dimensions
     }
     return propertyDict;
 }
+
+function checkIfJSONIsEmpty(json) {
+    for(var key in json) {
+        if(json.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
+
+// async function getStyleValue(item, json) {
+//     const element = item.asElement();
+//     for(var key in json) {
+//         const value = json[key];
+//         // console.log(value);
+//         const style1 = element.style.innerText;
+//         // const style = await element.$$eval(value, node => {
+//         //     console.log(node);
+//         //     return node.cssText
+//         // })
+//         console.log(style1);
+//     }
+// }
 
 
