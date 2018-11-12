@@ -47,11 +47,23 @@ async function loadElementProperties(item) {
     const propertyDict = {};
     if (element) {
         const tagName = await ( await element.getProperty( 'tagName' ) ).jsonValue();
-        propertyDict['tagName'] = tagName
+        if (tagName !== "") 
+            propertyDict['tagName'] = tagName
+        
+        const value = await ( await element.getProperty( 'value' ) ).jsonValue();
+        if (value !== "") 
+            propertyDict['value'] = value
+
+        const title = await ( await element.getProperty( 'title' ) ).jsonValue();
+        if (title !== "") 
+            propertyDict['title'] = title
+
         const text = await ( await element.getProperty( 'text' ) ).jsonValue();
-        propertyDict['text'] = text
+        if (text !== "") 
+            propertyDict['text'] = text
         const link = await ( await element.getProperty( 'href' ) ).jsonValue();
-        propertyDict['link'] = link
+        if (link !== "") 
+            propertyDict['link'] = link
         const style = await ( await element.getProperty( 'style' ) ).jsonValue();
         const isEmpty = checkIfJSONIsEmpty(style)
         if (!isEmpty) {
@@ -60,7 +72,8 @@ async function loadElementProperties(item) {
             // console.log(nodeList);
         }
         const dimensions = await element.boundingBox()
-        propertyDict['dimensions'] = dimensions
+        if (dimensions !== null) 
+            propertyDict['dimensions'] = dimensions
     }
     return propertyDict;
 }
