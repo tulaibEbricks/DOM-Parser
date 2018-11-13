@@ -6,14 +6,18 @@ const express = require('express');
 const request = require('request');
 const boundingRect = require('bounding-client-rect');
 const puppeteer = require('puppeteer');
+const pureImage = require('pureimage');
 
 const app = express();
 
 (async () => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
+    await page.setViewport({width: 1024, height: 600})
     await page.goto('https://www.google.com/');
     await page.screenshot({path: 'webpage.png'});
+    await page.screenshot({path: 'webpage2.png'});
+
     // const interactableElements = await page.$$eval('a', element => {
     //     return element;
     //     // return JSON.parse(JSON.stringify(element.style));//getComputedStyle(element);
@@ -28,6 +32,8 @@ const app = express();
         const elementsPropertyList = await elementsIterator(interactableElements)
         elementsDictionary[tag] = elementsPropertyList
     }
+
+    await markInteractiveElements(elementsDictionary);
     
     const stringifiedData = JSON.stringify(elementsDictionary)
     // console.log(stringifiedData);
@@ -78,7 +84,7 @@ async function loadElementProperties(item) {
             // console.log(nodeList);
         }
         const dimensions = await element.boundingBox()
-        if (dimensions !== null) 
+        if (dimensions !== null)
             propertyDict['dimensions'] = dimensions
     }
     return propertyDict;
@@ -90,6 +96,32 @@ function checkIfJSONIsEmpty(json) {
             return false;
     }
     return true;
+}
+
+async function markInteractiveElements(elementsDictionary) {
+    const readImage = await pureImage.decodePNGFromStream(fs.createReadStream('webpage2.png'));
+    console.log("size is",readImage.width,readImage.height);
+    var markedImage = pureImage.make(1024,600);
+    var context = markedImage.getContext('2d');
+    context.drawImage(readImage,
+        0, 0, readImage.width, readImage.height, // source dimensions
+        0, 0, 1024, 600                 // destination dimensions
+    );
+    context.strokeStyle = 'rgba(255, 0, 0, 1.0)';
+    for(const tag in elementsDictionary) {
+        const elementsArray = elementsDictionary[tag];
+        for (const elementDataDict of elementsArray) {
+            if (elementDataDict.hasOwnProperty('dimensions')) {
+                const dimensions = elementDataDict['dimensions'];
+                context.strokeRect(dimensions.x, dimensions.y, dimensions.width, dimensions.height);
+            }
+        }
+
+    }
+    var path = 'webpage2.png'
+    pureImage.encodePNGToStream(markedImage,fs.createWriteStream(path)).then(() => {
+        console.log("done writing");
+    });
 }
 
 // async function getStyleValue(item, json) {
