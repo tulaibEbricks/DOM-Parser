@@ -13,17 +13,23 @@ const app = express();
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto('https://www.google.com/');
+    await page.screenshot({path: 'webpage.png'});
     // const interactableElements = await page.$$eval('a', element => {
     //     return element;
     //     // return JSON.parse(JSON.stringify(element.style));//getComputedStyle(element);
     //     // return JSON.parse(JSON.stringify(getComputedStyle(element)));
     // });
-    const interactableElements = await page.$$('a');
-    // console.log(interactableElements);
-
-    console.log( interactableElements.length );
-    const elementsPropertyList = await elementsIterator(interactableElements)
-    const stringifiedData = JSON.stringify(elementsPropertyList)
+    const interactiveElementTags = ['a', 'button', 'input'];
+    const elementsDictionary = {};
+    for (const tag of interactiveElementTags) {
+        const interactableElements = await page.$$(tag);
+        // console.log(interactableElements);
+        console.log( interactableElements.length);
+        const elementsPropertyList = await elementsIterator(interactableElements)
+        elementsDictionary[tag] = elementsPropertyList
+    }
+    
+    const stringifiedData = JSON.stringify(elementsDictionary)
     // console.log(stringifiedData);
     writeFile('../parsedData.json', stringifiedData, function(err) {
         if (err) {
