@@ -9,14 +9,22 @@ const puppeteer = require('puppeteer');
 const pureImage = require('pureimage');
 
 const app = express();
+const screenWidth = 1024;
+const screenMaxHeight = 2600;
+const websiteURL = 'https://www.raywenderlich.com/';
+const screenShotName = 'webpage.png';
+var screenHeight;
 
 (async () => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    await page.setViewport({width: 1024, height: 600})
-    await page.goto('https://www.google.com/');
-    await page.screenshot({path: 'webpage.png'});
-    await page.screenshot({path: 'webpage2.png'});
+    await page.goto(websiteURL);
+    const websiteHeight = await page.evaluate('document.body.scrollHeight');
+    calculateScreenshotHeight(websiteHeight);
+    await page.setViewport({width: screenWidth, height: screenHeight})
+    await page.screenshot({path: screenShotName});
+    console.log(screenHeight);
+    
 
     // const interactableElements = await page.$$eval('a', element => {
     //     return element;
@@ -27,8 +35,6 @@ const app = express();
     const elementsDictionary = {};
     for (const tag of interactiveElementTags) {
         const interactableElements = await page.$$(tag);
-        // console.log(interactableElements);
-        console.log( interactableElements.length);
         const elementsPropertyList = await elementsIterator(interactableElements)
         elementsDictionary[tag] = elementsPropertyList
     }
@@ -99,13 +105,13 @@ function checkIfJSONIsEmpty(json) {
 }
 
 async function markInteractiveElements(elementsDictionary) {
-    const readImage = await pureImage.decodePNGFromStream(fs.createReadStream('webpage2.png'));
+    const readImage = await pureImage.decodePNGFromStream(fs.createReadStream(screenShotName));
     console.log("size is",readImage.width,readImage.height);
-    var markedImage = pureImage.make(1024,600);
+    var markedImage = pureImage.make(screenWidth,screenHeight);
     var context = markedImage.getContext('2d');
     context.drawImage(readImage,
         0, 0, readImage.width, readImage.height, // source dimensions
-        0, 0, 1024, 600                 // destination dimensions
+        0, 0, screenWidth, screenHeight                 // destination dimensions
     );
     context.strokeStyle = 'rgba(255, 0, 0, 1.0)';
     for(const tag in elementsDictionary) {
@@ -118,10 +124,18 @@ async function markInteractiveElements(elementsDictionary) {
         }
 
     }
-    var path = 'webpage2.png'
+    var path = screenShotName;
     pureImage.encodePNGToStream(markedImage,fs.createWriteStream(path)).then(() => {
         console.log("done writing");
     });
+}
+
+function calculateScreenshotHeight(websiteHeight) {
+    if (websiteHeight > screenMaxHeight) {
+        screenHeight = screenMaxHeight;
+    } else {
+        screenHeight = websiteHeight;
+    }
 }
 
 // async function getStyleValue(item, json) {
