@@ -12,6 +12,7 @@
     "nodemon": "^1.18.5"
   },
   "dependencies": {
+    "body-parser": "^1.18.3",
     "bounding-client-rect": "^1.0.5",
     "circular-json": "^0.5.9",
     "express": "^4.16.4",
