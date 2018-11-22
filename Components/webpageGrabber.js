@@ -5,9 +5,7 @@ var page;
 var browser;
 
 const setupPage = async (screenWidth, screenMaxHeight, webpageURL) => {
-    browser = await puppeteer.launch();
-    page = await browser.newPage();
-    await page.goto(webpageURL);
+    await createPage(webpageURL);
     const websiteHeight = await page.evaluate('document.body.scrollHeight');
     const screenHeight = calculateScreenshotHeight(websiteHeight, screenMaxHeight);
     console.log(screenHeight);
@@ -15,7 +13,9 @@ const setupPage = async (screenWidth, screenMaxHeight, webpageURL) => {
     return screenHeight;
 }
 
-const takeScreenshot = async (screenShotPath) => {
+const takeScreenshot = async (screenWidth, screenHeight, webpageURL, screenShotPath) => {
+    await createPage(webpageURL);
+    await page.setViewport({width: screenWidth, height: screenHeight});
     await page.screenshot({path: screenShotPath});
 }
 
@@ -26,6 +26,12 @@ const grabPageData = async () => {
 
 const closeBrowser = async () => {
     await browser.close();
+}
+
+async function createPage(webpageURL) {
+    browser = await puppeteer.launch();
+    page = await browser.newPage();
+    await page.goto(webpageURL);
 }
 
 async function getInteractiveElements() {
